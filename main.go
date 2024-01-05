@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type Customer struct {
@@ -45,6 +48,33 @@ func getCustomers(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func getCustomer(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	customerId, err := strconv.Atoi(vars["id"])
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	customer, exists := CustomerMap[customerId]
+	if !exists {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	
+	encoder := json.NewEncoder(w)
+	if err := encoder.Encode(customer); err == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func main () {
 	customer1 := Customer{1, "John Doe", "Customer", "email@email.com", "+49 12452 1234632", false}
 	customer2 := Customer{2, "Bob", "Customer", "cats@email.com", "+49 4542 123684932", false}
@@ -55,8 +85,11 @@ func main () {
 	customer2.addCustomerToDB()
 	customer3.addCustomerToDB()
 
-	http.HandleFunc("/customers", getCustomers)
+	r := mux.NewRouter()
+
+	r.HandleFunc("/customers", getCustomers).Methods("GET")
+	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
 
 	fmt.Println("Starting Server on port :3000 ...")
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":3000", r)
 }
