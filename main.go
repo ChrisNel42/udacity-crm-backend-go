@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 )
 
 type Customer struct {
@@ -31,8 +33,20 @@ func (c Customer) addCustomerToDB () (error) {
 	return nil
 }
 
+func getCustomers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	encoder := json.NewEncoder(w)
+	if err := encoder.Encode(CustomerMap); err == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func main () {
-	customer1 := Customer{3, "John Doe", "Admin", "email@email.com", "+49 12452 1234632", false}
+	customer1 := Customer{1, "John Doe", "Customer", "email@email.com", "+49 12452 1234632", false}
 	customer2 := Customer{2, "Bob", "Customer", "cats@email.com", "+49 4542 123684932", false}
 	customer3 := Customer{3, "Amanda Smith", "Customer", "amanda@email.com", "+49 4542 123684932", false}
 
@@ -41,5 +55,8 @@ func main () {
 	customer2.addCustomerToDB()
 	customer3.addCustomerToDB()
 
-	fmt.Println(CustomerMap)
+	http.HandleFunc("/customers", getCustomers)
+
+	fmt.Println("Starting Server on port :3000 ...")
+	http.ListenAndServe(":3000", nil)
 }
