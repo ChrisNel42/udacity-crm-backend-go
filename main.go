@@ -30,7 +30,7 @@ func (c Customer) addCustomerToDB () (error) {
 
 	_, exists := CustomerMap[c.Id]
 	if exists {
-		return errors.New("Customer already exists")
+		return errors.New("Customer with this id already exists")
 	}
 	CustomerMap[c.Id] = c
 	return nil
@@ -75,6 +75,28 @@ func getCustomer(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func addCustomer(w http.ResponseWriter, r *http.Request) {
+
+	var customer Customer
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	if err := customer.addCustomerToDB(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "{\"error\": \"%s\"}", err)
+		return
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(customer)
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func main () {
 	customer1 := Customer{1, "John Doe", "Customer", "email@email.com", "+49 12452 1234632", false}
 	customer2 := Customer{2, "Bob", "Customer", "cats@email.com", "+49 4542 123684932", false}
@@ -89,6 +111,7 @@ func main () {
 
 	r.HandleFunc("/customers", getCustomers).Methods("GET")
 	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
+	r.HandleFunc("/customers", addCustomer).Methods("POST")
 
 	fmt.Println("Starting Server on port :3000 ...")
 	http.ListenAndServe(":3000", r)
