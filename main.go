@@ -21,10 +21,13 @@ type Customer struct {
 
 type CustomerDB interface {
 	addCustomerToDB()
+	deleteCustomerFromDB()
 }
 
 // This map represents the Database
 var CustomerMap map[int]Customer
+
+// Functions for Customer objects
 
 func (c Customer) addCustomerToDB () (error) {
 
@@ -35,6 +38,17 @@ func (c Customer) addCustomerToDB () (error) {
 	CustomerMap[c.Id] = c
 	return nil
 }
+
+func (c Customer) deleteCustomerFromDB () (error) {
+	_, exists := CustomerMap[c.Id]
+	if !exists {
+		return errors.New("Customer not found in DB")
+	}
+	delete(CustomerMap, c.Id)
+	return nil
+}
+
+// Handlers for API
 
 func getCustomers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -94,6 +108,33 @@ func addCustomer(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 	encoder.Encode(customer)
 
+	w.WriteHeader(http.StatusCreated)
+}
+
+func deleteCustomer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customerId, err := strconv.Atoi(vars["id"])
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	customer := CustomerMap[customerId]
+
+	if err := customer.deleteCustomerFromDB(); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "{\"error\": \"%s\"}", err)
+		return
+	}
+	
+	encoder := json.NewEncoder(w)
+	if err := encoder.Encode(CustomerMap); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -112,6 +153,7 @@ func main () {
 	r.HandleFunc("/customers", getCustomers).Methods("GET")
 	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
 	r.HandleFunc("/customers", addCustomer).Methods("POST")
+	r.HandleFunc("/customers/{id}", deleteCustomer).Methods("DELETE")
 
 	fmt.Println("Starting Server on port :3000 ...")
 	http.ListenAndServe(":3000", r)
