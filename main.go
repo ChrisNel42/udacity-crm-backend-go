@@ -22,6 +22,7 @@ type Customer struct {
 type CustomerDB interface {
 	addCustomerToDB()
 	deleteCustomerFromDB()
+	editCustomerInDB()
 }
 
 // This map represents the Database
@@ -48,6 +49,16 @@ func (c Customer) deleteCustomerFromDB () (error) {
 	return nil
 }
 
+func (c Customer) editCustomerInDB () (error) {
+	_, exists := CustomerMap[c.Id]
+	if !exists {
+		return errors.New("Customer not found in DB")
+	}
+
+	CustomerMap[c.Id] = c
+	return nil
+}
+
 // Handlers for API
 
 func getCustomers(w http.ResponseWriter, r *http.Request) {
@@ -58,16 +69,13 @@ func getCustomers(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func getCustomer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
 	customerId, err := strconv.Atoi(vars["id"])
-
-	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -85,14 +93,12 @@ func getCustomer(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func addCustomer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	var customer Customer
-	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -112,10 +118,10 @@ func addCustomer(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCustomer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(r)
 	customerId, err := strconv.Atoi(vars["id"])
-
-	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -135,7 +141,30 @@ func deleteCustomer(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+}
+
+func updateCustomer(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	var customer Customer
+
+	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "{\"error\": \"Request does not contain a valid Customer\"}")
+		return
+	}
+
+	// Keep ids consistent
+	customer.Id, _ = strconv.Atoi(mux.Vars(r)["id"])
+
+	if err := customer.editCustomerInDB(); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "{\"error\": \"%s\"}", err)
+		return
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(customer)
 }
 
 func main () {
@@ -150,11 +179,18 @@ func main () {
 
 	r := mux.NewRouter()
 
+	r.HandleFunc("/", nil).Methods("GET")
 	r.HandleFunc("/customers", getCustomers).Methods("GET")
 	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
 	r.HandleFunc("/customers", addCustomer).Methods("POST")
+	r.HandleFunc("/customers/{id}", updateCustomer).Methods("PUT")
 	r.HandleFunc("/customers/{id}", deleteCustomer).Methods("DELETE")
+
+	customer3.editCustomerInDB()
 
 	fmt.Println("Starting Server on port :3000 ...")
 	http.ListenAndServe(":3000", r)
+
+	// http: superfluous response.WriteHeader call stems from setting the header AFTER writing to the response
+	// taking the lessons into account, i don't know how to circumvent this
 }
