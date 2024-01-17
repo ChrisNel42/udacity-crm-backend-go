@@ -85,6 +85,7 @@ func getCustomer(w http.ResponseWriter, r *http.Request) {
 	customer, exists := CustomerMap[customerId]
 	if !exists {
 		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, "{\"error\": \"Customer not found in DB\"}")
 		return
 	}
 	
@@ -179,7 +180,8 @@ func main () {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", nil).Methods("GET")
+	r.Handle("/", http.FileServer(http.Dir("./static"))).Methods("GET")
+
 	r.HandleFunc("/customers", getCustomers).Methods("GET")
 	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
 	r.HandleFunc("/customers", addCustomer).Methods("POST")

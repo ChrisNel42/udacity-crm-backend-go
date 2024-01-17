@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>API Documentation</title>
+</head>
+<body>
+    <h1>API Documentation</h1>
+
+    <h2>Introduction</h2>
+    <p>Welcome to the API documentation for my CRM Backend. This page will guide you on how to use my API to access and interact with the customer DB.</p>
+
+    <h2>Getting Started</h2>
+    <p>To get started, you will need to execute the application on your machine. Please follow the steps in the README</p>
+
+    <h2>API Endpoints</h2>
+    <p>Below are the available API endpoints:</p>
+    <ul>
+        <li><code>/customers GET</code> - List all customers currently present in the DB</li>
+        <li><code>/customers/{id} GET</code> - Get the customer with the specified id from the DB</li>
+        <li><code>/customers POST</code> - Add a customer to the DB; Customer is sent in the body as JSON</li>
+        <li><code>/customers/{id} PUT</code> - Update an existing customer in the DB; Customer is sent in the body as JSON - Field "id" has no effect</li>
+        <li><code>/customers/{id} DELETE</code> - Delete an existing customer from the DB</li>
+    </ul>
+
+    <h2>Data structure</h2>
+    <p>Below is an example of a valid JSON customer object:</p>
+    <pre>
+        <code>
+        {
+            "id": 1,
+            "name": "John",
+            "phone": "Doe",
+            "email": "email@mail.com",
+            "contacted": false
+        }
+        </code>
+    </pre>
+
+    <ul>
+        <li><code>id</code> - Type <code>int</code></li>
+        <li><code>name</code> - Type <code>string</code></li>
+        <li><code>phone</code> - Type <code>string</code></li>
+        <li><code>email</code> - Type <code>string</code></li>
+        <li><code>contacted</code> - Type <code>boolean</code></li>
+    </ul>
+
+    <h2>Authentication</h2>
+    <p>All API requests require no authentication</p>
+
+    <h2>Response Format</h2>
+    <p>The API responses are returned in JSON format. The structure of the response will vary depending on the endpoint.</p>
+
+    <h2>Error Handling</h2>
+    <p>If an error occurs, the API will return an appropriate HTTP status code along with an error message in the response body, if it makes sense.</p>
+</body>
+</html>
