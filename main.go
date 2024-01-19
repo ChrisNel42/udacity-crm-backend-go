@@ -20,9 +20,9 @@ type Customer struct {
 }
 
 type CustomerDB interface {
-	addCustomerToDB()
-	deleteCustomerFromDB()
-	editCustomerInDB()
+	addCustomerToDB() error
+	deleteCustomerFromDB() error
+	editCustomerInDB() error
 }
 
 // This map represents the Database
@@ -187,8 +187,6 @@ func main () {
 	r.HandleFunc("/customers", addCustomer).Methods("POST")
 	r.HandleFunc("/customers/{id}", updateCustomer).Methods("PUT")
 	r.HandleFunc("/customers/{id}", deleteCustomer).Methods("DELETE")
-
-	customer3.editCustomerInDB()
 
 	fmt.Println("Starting Server on port :3000 ...")
 	http.ListenAndServe(":3000", r)
