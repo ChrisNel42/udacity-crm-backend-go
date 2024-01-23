@@ -15,7 +15,7 @@ type Customer struct {
 	Name 		string  `json:"name"`
 	Role 		string	`json:"role"`
 	Email 		string  `json:"email"`
-	Phone 		string  `json:"phone"`
+	Phone 		int  	`json:"phone"`
 	Contacted 	bool    `json:"contacted"`
 }
 
@@ -169,9 +169,9 @@ func updateCustomer(w http.ResponseWriter, r *http.Request){
 }
 
 func main () {
-	customer1 := Customer{1, "John Doe", "Customer", "email@email.com", "+49 12452 1234632", false}
-	customer2 := Customer{2, "Bob", "Customer", "cats@email.com", "+49 4542 123684932", false}
-	customer3 := Customer{3, "Amanda Smith", "Customer", "amanda@email.com", "+49 4542 123684932", false}
+	customer1 := Customer{1, "John Doe", "Customer", "email@email.com", 39124521234632, false}
+	customer2 := Customer{2, "Bob", "Customer", "cats@email.com", 494542123684932, false}
+	customer3 := Customer{3, "Amanda Smith", "Customer", "amanda@email.com", 494542123684932, false}
 
 	CustomerMap = make(map[int]Customer)
 	customer1.addCustomerToDB()
