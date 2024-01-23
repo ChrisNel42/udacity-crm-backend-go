@@ -11,9 +11,17 @@ Pull the repository and make sure that go and the gorilla/mux package is install
 
 GoLang: 
 https://go.dev/doc/install
+
+Gorilla/mux Router:
 ```
 go get -u github.com/gorilla/mux
 ```
+
+Google UUID package:
+```
+go get github.com/google/uuid
+```
+
 # Launching the application
 When everything is set up, simply go into the root directory of the project and type:
 ```

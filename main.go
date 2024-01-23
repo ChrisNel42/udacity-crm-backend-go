@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 type Customer struct {
-	Id 			int		`json:"id"`
+	Id 			int		`json:"id" validate:"omitempty,uuid4"`
 	Name 		string  `json:"name"`
 	Role 		string	`json:"role"`
 	Email 		string  `json:"email"`
@@ -30,13 +31,17 @@ var CustomerMap map[int]Customer
 
 // Functions for Customer objects
 
-func (c Customer) addCustomerToDB () (error) {
-
+func (c *Customer) addCustomerToDB () (error) {
+	// Collisions are to be ignored, as a real DB could more easily handle unique IDs
+	if c.Id == 0 {
+		c.Id = int(uuid.New().ID())
+	}
+	
 	_, exists := CustomerMap[c.Id]
 	if exists {
 		return errors.New("Customer with this id already exists")
 	}
-	CustomerMap[c.Id] = c
+	CustomerMap[c.Id] = *c
 	return nil
 }
 
